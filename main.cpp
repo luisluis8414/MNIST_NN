@@ -1,22 +1,15 @@
 #include <vector>
 #include <iostream>
-
-// der bias wird mit 0 initialiesiert
+#include <cmath>
 
 class Perceptron
 {
 private:
     std::vector<double> weights;
-
-    // Der Bias ist ein zusätzlicher Parameter, der die Entscheidungsgrenze verschiebt,
-    // um das Modell flexibler zu machen. Er wirkt wie ein Offset in der Berechnung
-    // der gewichteten Summe und ermöglicht es dem Perceptron, auch Daten zu trennen,
-    // die nicht durch den Ursprung verlaufen.
     double learningRate;
     double bias;
 
 public:
-    // Konstruktor: n ist die Anzahl der Eingabe-Features
     Perceptron(int n, double lr = 0.1) : weights(n, 0.0),
                                          bias(0.0),
                                          learningRate(lr)

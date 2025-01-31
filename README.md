@@ -1,22 +1,13 @@
 # Perceptron
 
-Dieses Projekt ist eine Implementierung eines Perceptrons in C++. Ein Perceptron ist ein einfacher, linearer Klassifikator, der Datenpunkte in zwei Klassen einteilen kann. Er basiert auf der Idee, dass die Daten durch eine lineare Entscheidungsgrenze (z. B. eine gerade Linie in 2D) getrennt werden können.
+# Multilayer Perceptrons
 
-## Das XOR Problem
+## Training the network
 
-Versuchen wir unser Pereptron mit dem XOR-Problem zu trainieren:
+    - backpropagation
+    - gradient desecent
 
-```cpp
-std::vector<int> training_outputs = {1, 0, 0, 1};
-```
-
-so fällt auf, das der Output ein falsches Ergebnis liefert:
-
-```bash
-0 AND 0 = 0
-0 AND 1 = 0
-1 AND 0 = 1
-1 AND 1 = 1
-```
-
-Das liegt daran, dass die Wahrheitstabelle eines XOR-Gatters nicht linear separabel ist.
+1. Forward Pass: Compute the outputs of the network for a given input.
+2. Compute the Error: Compare the network's output with the expected output (target) using a loss function.
+3. Backward Pass (Backpropagation): Compute the gradients of the loss with respect to the weights and biases of each perceptron.
+4. Update Weights and Biases: Use the gradients to adjust the weights and biases using gradient descent.
