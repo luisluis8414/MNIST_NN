@@ -13,13 +13,13 @@ private:
     // der gewichteten Summe und ermöglicht es dem Perceptron, auch Daten zu trennen,
     // die nicht durch den Ursprung verlaufen.
     double learningRate;
+    double bias;
 
 public:
-    double bias;
     // Konstruktor: n ist die Anzahl der Eingabe-Features
-    Perceptron(int n, double lr = 0.1) : weights(n, 0.0), 
-                                         bias(0.0),       
-                                         learningRate(lr) 
+    Perceptron(int n, double lr = 0.1) : weights(n, 0.0),
+                                         bias(0.0),
+                                         learningRate(lr)
     {
     }
 
@@ -92,7 +92,7 @@ int main()
         std::cout << "weight: " << weight << std::endl;
     }
 
-    std::cout << "bias: " << p.bias << std::endl;
+    // std::cout << "bias: " << p.bias << std::endl;
 
     return 0;
 }
