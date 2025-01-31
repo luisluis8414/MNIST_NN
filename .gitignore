@@ -3,3 +3,15 @@
 ./test
 
 .vscode
+
+*.sln
+*.vcxproj
+
+Makefile
+*.make
+.vscode
+*.vcxproj.filters
+
+bin
+
+vendor
