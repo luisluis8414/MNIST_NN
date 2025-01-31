@@ -12,6 +12,7 @@ Makefile
 .vscode
 *.vcxproj.filters
 
+obj
 bin
 
 vendor

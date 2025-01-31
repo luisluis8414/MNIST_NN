@@ -79,18 +79,35 @@ private:
     std::vector<Perceptron> m_outerLayer;
 
 public:
-    MLP(int i_n, int h_n, int o_n, double learningRate = 0.1) : m_innerLayer(i_n, Perceptron(i_n, learningRate)), m_hiddenLayer(h_n, Perceptron(h_n, learningRate)), m_outerLayer(o_n, Perceptron(o_n, learningRate)) {}
+    MLP(int inputSize, int hiddenSize, int outputSize, double learningRate = 0.1)
+    {
+        // for (int i = 0; i < inputSize; i++)
+        // {
+        //     m_innerLayer.emplace_back(1, learningRate);
+        // }
+
+        for (int i = 0; i < hiddenSize; i++)
+        {
+            m_hiddenLayer.emplace_back(inputSize, learningRate);
+        }
+
+        for (int i = 0; i < outputSize; i++)
+        {
+            m_outerLayer.emplace_back(hiddenSize, learningRate);
+        }
+    }
 
     // takes a layer and the inputs to that layer and calc the output of each perceptron of that layer
     std::vector<double> computeLayerOutput(const std::vector<Perceptron> &layer, const std::vector<double> &inputs)
     {
-        if (layer.size() != inputs.size())
+        // The input size should match the size of the weights of each perceptron
+        if (inputs.size() != layer[0].getWeights().size())
         {
-            throw std::invalid_argument("size of inputs doesnt match layer size");
+            throw std::invalid_argument("size of inputs doesn't match perceptron input size");
         }
 
+        // Calculate the output for each perceptron in the layer
         std::vector<double> outputs(layer.size(), 0.0);
-
         for (size_t i = 0; i < layer.size(); i++)
         {
             outputs[i] = layer[i].calcOutput(inputs);
@@ -100,16 +117,16 @@ public:
     }
 
     // forward pass calc and passes further outputs of each layer
-    // std::vector<double> forward(const std::vector<double> &inputs)
-    // {
-    //     std::vector<double> innerOutputs = computeLayerOutput(m_innerLayer, inputs);
+    std::vector<double> forward(const std::vector<double> &inputs)
+    {
+        // std::vector<double> innerOutputs = computeLayerOutput(m_innerLayer, inputs);
 
-    //     std::vector<double> hiddenOutputs = computeLayerOutput(m_hiddenLayer, innerOutputs);
+        std::vector<double> hiddenOutputs = computeLayerOutput(m_hiddenLayer, inputs);
 
-    //     std::vector<double> outerOutputs = computeLayerOutput(m_outerLayer, hiddenOutputs);
+        std::vector<double> outerOutputs = computeLayerOutput(m_outerLayer, hiddenOutputs);
 
-    //     return outerOutputs;
-    // }
+        return outerOutputs;
+    }
 
     double meanSquaredError(const std::vector<double> &outputs, const std::vector<double> &targets)
     {
@@ -126,11 +143,11 @@ public:
         return error / outputs.size();
     }
 
-    //backprobagation
+    // backprobagation
     void train(const std::vector<double> &inputs, const std::vector<double> &targets)
     {
-        std::vector<double> innerOutputs = computeLayerOutput(m_innerLayer, inputs);
-        std::vector<double> hiddenOutputs = computeLayerOutput(m_hiddenLayer, innerOutputs);
+        // std::vector<double> innerOutputs = computeLayerOutput(m_innerLayer, inputs);
+        std::vector<double> hiddenOutputs = computeLayerOutput(m_hiddenLayer, inputs);
         std::vector<double> outerOutputs = computeLayerOutput(m_outerLayer, hiddenOutputs);
 
         // Compute output layer error gradients
@@ -164,7 +181,7 @@ public:
         // Update hidden layer weights and biases
         for (size_t i = 0; i < m_hiddenLayer.size(); i++)
         {
-            m_hiddenLayer[i].updateWeights(innerOutputs, hiddenDeltas[i]);
+            m_hiddenLayer[i].updateWeights(inputs, hiddenDeltas[i]);
         }
 
         // Compute inner layer error gradients
@@ -176,7 +193,7 @@ public:
             {
                 error += hiddenDeltas[j] * m_hiddenLayer[j].getWeights()[i];
             }
-            double derivative = innerOutputs[i] * (1.0 - innerOutputs[i]); // Sigmoid derivative
+            double derivative = inputs[i] * (1.0 - inputs[i]); // Sigmoid derivative
             innerDeltas[i] = error * derivative;
         }
 
@@ -187,9 +204,9 @@ public:
         }
     }
 
-    void StartTraining(const std::vector<std::vector<double>> &trainingInputs,
-               const std::vector<std::vector<double>> &trainingTargets,
-               int epochs)
+    void startTraining(const std::vector<std::vector<double>> &trainingInputs,
+                       const std::vector<std::vector<double>> &trainingTargets,
+                       int epochs)
     {
         for (int epoch = 0; epoch < epochs; epoch++)
         {
@@ -201,8 +218,8 @@ public:
                 train(trainingInputs[i], trainingTargets[i]);
 
                 // Forward pass to calculate the output
-                std::vector<double> innerOutputs = computeLayerOutput(m_innerLayer, trainingInputs[i]);
-                std::vector<double> hiddenOutputs = computeLayerOutput(m_hiddenLayer, innerOutputs);
+                // std::vector<double> innerOutputs = computeLayerOutput(m_innerLayer, trainingInputs[i]);
+                std::vector<double> hiddenOutputs = computeLayerOutput(m_hiddenLayer, trainingInputs[i]);
                 std::vector<double> outerOutputs = computeLayerOutput(m_outerLayer, hiddenOutputs);
 
                 // Calculate the error for this example

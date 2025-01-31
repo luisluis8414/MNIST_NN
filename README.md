@@ -13,5 +13,5 @@
 4. Update Weights and Biases: Use the gradients to adjust the weights and biases using gradient descent.
 
 
-dependencys: 
+dependencies: 
     - [opencv](https://github.com/opencv/opencv)
