@@ -15,3 +15,6 @@
 
 dependencies: 
     - [opencv](https://github.com/opencv/opencv)
+
+data used: 
+    [MNIST in CSV](https://pjreddie.com/projects/mnist-in-csv/)
