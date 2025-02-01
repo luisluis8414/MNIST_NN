@@ -12,7 +12,9 @@ Makefile
 .vscode
 *.vcxproj.filters
 
-obj
+obj/*
 bin
 
 vendor
+
+resources/training_data

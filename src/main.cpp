@@ -9,6 +9,16 @@ std::vector<double> oneHotEncode(int label, int size = 9)
     return encoded;
 }
 
+void printVec(std::vector<double> vec)
+{
+    std::cout << "{";
+    for (auto value : vec)
+    {
+        std::cout << value << ", ";
+    }
+    std::cout << "}" << std::endl;
+}
+
 int main()
 {
     FileReader fileReader(100);
@@ -28,14 +38,57 @@ int main()
 
         mlp.startTraining(inputs, targets, 1000);
 
-        auto output = mlp.forward(data[0]);
+        std::vector<std::vector<double>> data2 = fileReader.splitImage("resources/1_9.2.png", 9);
 
-        std::cout << "{";
-        for (auto value : output)
         {
-            std::cout << value << ", ";
+            auto output1 = mlp.forward(data[0]);
+
+            auto output2 = mlp.forward(data[1]);
+
+            auto output3 = mlp.forward(data[2]);
+
+            auto output4 = mlp.forward(data[3]);
+
+            auto output5 = mlp.forward(data[4]);
+
+            auto output6 = mlp.forward(data[5]);
+
+            auto output7 = mlp.forward(data[6]);
+
+            printVec(output1);
+            printVec(output2);
+            printVec(output3);
+            printVec(output4);
+            printVec(output5);
+            printVec(output6);
+            printVec(output7);
         }
-        std::cout << "}";
+        std::cout << "----------------------------------------" << std::endl;
+        {
+            {
+                auto output1 = mlp.forward(data2[0]);
+
+                auto output2 = mlp.forward(data2[1]);
+
+                auto output3 = mlp.forward(data2[2]);
+
+                auto output4 = mlp.forward(data2[3]);
+
+                auto output5 = mlp.forward(data2[4]);
+
+                auto output6 = mlp.forward(data2[5]);
+
+                auto output7 = mlp.forward(data2[6]);
+
+                printVec(output1);
+                printVec(output2);
+                printVec(output3);
+                printVec(output4);
+                printVec(output5);
+                printVec(output6);
+                printVec(output7);
+            }
+        }
     }
     catch (const std::exception &e)
     {

@@ -33,8 +33,15 @@ public:
             cv::Rect roi(x, 0, chunkWidth, imgHeight);
             cv::Mat chunk = img(roi);
             std::vector<double> flattenedChunk;
+
+            // Convert the chunk to double and normalize
             chunk.convertTo(chunk, CV_64F, 1.0 / 255.0);
-            flattenedChunk.assign((double *)chunk.datastart, (double *)chunk.dataend);
+
+            // Correctly get the data pointers
+            double *dataStart = (double *)chunk.data;
+            double *dataEnd = dataStart + chunk.total();
+
+            flattenedChunk.assign(dataStart, dataEnd);
             chunks.push_back(flattenedChunk);
         }
 
