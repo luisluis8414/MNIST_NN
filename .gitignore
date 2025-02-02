@@ -11,10 +11,11 @@ Makefile
 *.make
 .vscode
 *.vcxproj.filters
+*.vcxproj.user
 
 obj/*
 bin
 
 vendor
 
-resources/training_data
+*/resources/training_data
