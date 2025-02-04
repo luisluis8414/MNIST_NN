@@ -22,8 +22,7 @@ public:
     // Forward pass
     std::vector<double> forward(const std::vector<double> &inputs);
 
-    // Training
-    void train(const std::vector<double> &inputs, const std::vector<double> &targets);
+    // Start training
     void startTraining(const std::vector<std::vector<double>> &trainingInputs,
                        const std::vector<std::vector<double>> &trainingTargets,
                        int epochs, int patience = 5, double minimalImprovement = 0.0001);
@@ -36,7 +35,9 @@ private:
     // PIMPL: forward-declare the internal implementation structure.
     struct Layers;
     Layers *m_Layers;
-
+    
+    // Training
+    void train(const std::vector<double> &inputs, const std::vector<double> &targets);
     // Helper functions
     std::vector<double> computeLayerOutput(const std::vector<Perceptron> &layer,
                                            const std::vector<double> &inputs);

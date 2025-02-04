@@ -81,7 +81,10 @@ void MLP::train(const std::vector<double> &inputs, const std::vector<double> &ta
     for (size_t i = 0; i < m_Layers->outerLayer.size(); i++)
     {
         double error = outerOutputs[i] - targets[i];
-        double derivative = outerOutputs[i] * (1.0 - outerOutputs[i]); // Sigmoid derivative
+        // Sigmoid derivative
+        // if preceptron close to 0 or 1, derivative gets small, reducing the error
+        // prevents, strong adjustments at already saturated preceptrons
+        double derivative = outerOutputs[i] * (1.0 - outerOutputs[i]); 
         outputDeltas[i] = error * derivative;
     }
 
@@ -132,22 +135,11 @@ void MLP::startTraining(const std::vector<std::vector<double>> &trainingInputs,
             std::vector<double> outerOutputs = computeLayerOutput(m_Layers->outerLayer, hiddenOutputs);
 
             totalMSE += meanSquaredError(outerOutputs, trainingTargets[i]);
-
-            size_t predictedLabel = std::distance(
-                outerOutputs.begin(),
-                std::max_element(outerOutputs.begin(), outerOutputs.end()));
-            size_t targetLabel = std::distance(
-                trainingTargets[i].begin(),
-                std::max_element(trainingTargets[i].begin(), trainingTargets[i].end()));
-            if (predictedLabel == targetLabel)
-                correctPredictions++;
         }
 
         double avgMSE = totalMSE / trainingInputs.size();
-        double accuracy = static_cast<double>(correctPredictions) / trainingInputs.size();
 
-        std::cout << "Epoch " << epoch + 1 << " - Average MSE: " << avgMSE
-                  << ", Accuracy: " << (accuracy * 100.0) << "%" << '\n';
+        std::cout << "Epoch " << epoch + 1 << " - Average MSE: " << avgMSE << '\n';
 
         if (avgMSE < bestMSE - minimalImprovement)
         {
@@ -171,6 +163,8 @@ void MLP::startTraining(const std::vector<std::vector<double>> &trainingInputs,
 // Save the model to a file
 void MLP::saveModel(const std::string &filename)
 {
+    // output file stream
+    // ibinary mode ensures that data is written in raw binary form without any formatting changes 
     std::ofstream ofs(filename, std::ios::binary);
     if (!ofs)
     {
@@ -179,14 +173,14 @@ void MLP::saveModel(const std::string &filename)
 
     size_t hiddenSize = m_Layers->hiddenLayer.size();
     ofs.write(reinterpret_cast<const char *>(&hiddenSize), sizeof(hiddenSize));
-    for (const auto &perceptron : m_Layers->hiddenLayer)
+    for (const Perceptron &perceptron : m_Layers->hiddenLayer)
     {
         perceptron.save(ofs);
     }
 
     size_t outerSize = m_Layers->outerLayer.size();
     ofs.write(reinterpret_cast<const char *>(&outerSize), sizeof(outerSize));
-    for (const auto &perceptron : m_Layers->outerLayer)
+    for (const Perceptron &perceptron : m_Layers->outerLayer)
     {
         perceptron.save(ofs);
     }

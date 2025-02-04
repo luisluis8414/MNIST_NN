@@ -87,3 +87,54 @@ project "MNIST"
       postbuildcommands {
          "{COPY} vendor/opencv/build/x64/vc16/bin/opencv_world4110.dll %{cfg.targetdir}",
       }
+
+-- Client / Trainer app project
+project "draw_and_predict"
+   kind "ConsoleApp"         -- Build as a console application
+   language "C++"
+   cppdialect "C++17"
+   staticruntime "off"       -- Use dynamic runtime libraries
+
+   -- Output directories for binaries and intermediate object files
+   targetdir "bin/%{cfg.platform}/%{cfg.buildcfg}/draw_and_predict"
+   objdir "obj/%{cfg.platform}/%{cfg.buildcfg}/draw_and_predict"
+
+   -- Specify the files to include in the build
+   files { "draw_and_predict/src/**.hpp", "draw_and_predict/src/**.cpp" }
+
+   -- Include directories for header files
+   includedirs { "mlp/include", "draw_and_predict/src", "include" }
+
+   -- Link against the MLP DLL and OpenCV
+   libdirs { "bin/%{cfg.platform}/%{cfg.buildcfg}/mlp", "lib" }
+   links { "mlp", "opencv_world4110d" }
+
+   debugdir "%{cfg.targetdir}"
+   
+   postbuildcommands {
+      "{COPY} bin/%{cfg.platform}/%{cfg.buildcfg}/mlp/mlp.dll %{cfg.targetdir}",
+      "{COPY} MNIST/models %{cfg.targetdir}/models",
+   }
+
+   -- Platform-specific settings
+   filter "system:windows"
+      systemversion "latest"  -- Use the latest Windows SDK
+      defines { "PLATFORM_WINDOWS" }
+
+   -- Debug configuration settings
+   filter "configurations:Debug"
+      defines "DEBUG"         -- Define the DEBUG macro
+      runtime "Debug"         -- Use the debug runtime library
+      symbols "on"            -- Enable debug symbols for debugging
+      postbuildcommands {
+         "{COPY} vendor/opencv/build/x64/vc16/bin/opencv_world4110d.dll %{cfg.targetdir}",
+      }
+
+   -- Release configuration settings
+   filter "configurations:Release"
+      defines "NDEBUG"        -- Define the NDEBUG macro (no debug)
+      runtime "Release"       -- Use the release runtime library
+      optimize "on"           -- Enable optimizations for better performance
+      postbuildcommands {
+         "{COPY} vendor/opencv/build/x64/vc16/bin/opencv_world4110.dll %{cfg.targetdir}",
+      }

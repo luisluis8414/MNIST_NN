@@ -5,11 +5,6 @@
 
 class Perceptron
 {
-private:
-    std::vector<double> m_weights;
-    double m_bias;
-    double m_learningRate;
-
 public:
     Perceptron(int n, double learningRate);
     Perceptron();
@@ -31,4 +26,9 @@ public:
     // Save and load perceptron parameters
     void save(std::ofstream &ofs) const;
     void load(std::ifstream &ifs);
+
+private:
+    std::vector<double> m_weights;
+    double m_bias;
+    double m_learningRate;
 };
