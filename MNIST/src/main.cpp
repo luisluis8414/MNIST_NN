@@ -14,15 +14,15 @@
 //============================================================================
 // Parameters
 //============================================================================
-const double LEARNING_RATE = 0.05;
+const double LEARNING_RATE = 0.01;
 const int EPOCHS = 100;
-const int TRAINING_SAMPLES = 10000;
-const int HIDDEN_NEURONS = 128;
+const int TRAINING_SAMPLES = 60000;
+const int HIDDEN_NEURONS_LAYER1 = 128;
+const int HIDDEN_NEURONS_LAYER2 = 64;
 
 // Input and output sizes for the MNIST dataset
-const int INPUT_SIZE = 784;
-// Numbers 0 to 9
-const int OUTPUT_SIZE = 10;
+const int INPUT_SIZE = 784; // 28x28 pixels
+const int OUTPUT_SIZE = 10; // Digits 0 to 9
 
 //============================================================================
 // Helper Functions
@@ -63,7 +63,8 @@ std::string buildModelPath()
         << LEARNING_RATE << "_"
         << EPOCHS << "_"
         << TRAINING_SAMPLES << "_"
-        << HIDDEN_NEURONS;
+        << HIDDEN_NEURONS_LAYER1 << "_"
+        << HIDDEN_NEURONS_LAYER2;
     return oss.str();
 }
 
@@ -87,7 +88,12 @@ void train()
         trainingTargets.push_back(oneHotEncode(label));
     }
 
-    MLP mlp(INPUT_SIZE, HIDDEN_NEURONS, OUTPUT_SIZE, LEARNING_RATE);
+    // two hidden layers
+    std::vector<int> hiddenLayers = {HIDDEN_NEURONS_LAYER1, HIDDEN_NEURONS_LAYER2};
+
+    // create mlp
+    MLP mlp(INPUT_SIZE, hiddenLayers, OUTPUT_SIZE, LEARNING_RATE);
+
     std::cout << "Starting training for " << EPOCHS << " epochs on "
               << TRAINING_SAMPLES << " samples." << std::endl;
     mlp.startTraining(trainingInputs, trainingTargets, EPOCHS);
@@ -106,7 +112,11 @@ void loadModel(std::string modelPath = buildModelPath())
 {
     std::string csvTestingFile = "resources/training_data/mnist_test.csv";
 
-    MLP mlp(INPUT_SIZE, HIDDEN_NEURONS, OUTPUT_SIZE, 0.01);
+    // two hidden layers
+    std::vector<int> hiddenLayers = {HIDDEN_NEURONS_LAYER1, HIDDEN_NEURONS_LAYER2};
+
+    // Note: The learning rate here is not used in inference.
+    MLP mlp(INPUT_SIZE, hiddenLayers, OUTPUT_SIZE, 0.01);
 
     mlp.loadModel(modelPath);
     std::cout << "Model loaded successfully from file: " << modelPath
@@ -141,9 +151,10 @@ int main()
 {
     try
     {
+        // Uncomment the following line to train a new model.
         // train();
 
-        loadModel("models/best_so_far/model");
+        loadModel("models/model_0.01_100_60000_128_64");
     }
     catch (const std::exception &e)
     {
@@ -152,4 +163,4 @@ int main()
     }
 
     return 0;
-};
+}

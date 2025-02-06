@@ -17,30 +17,39 @@
 class MLP_API MLP
 {
 public:
-    MLP(int inputSize, int hiddenSize, int outputSize, double learningRate = 0.1);
+    /**
+     * Constructor for a network with multiple hidden layers.
+     * @param inputSize Number of input neurons.
+     * @param hiddenSizes A vector containing the size of each hidden layer.
+     * @param outputSize Number of output neurons.
+     * @param learningRate Learning rate for training.
+     */
+    MLP(int inputSize, const std::vector<int> &hiddenSizes,
+        int outputSize, double learningRate = 0.1);
 
-    // Forward pass
+    // Forward pass: returns the network output for given inputs.
     std::vector<double> forward(const std::vector<double> &inputs);
 
-    // Start training
+    // Training with early stopping.
     void startTraining(const std::vector<std::vector<double>> &trainingInputs,
                        const std::vector<std::vector<double>> &trainingTargets,
-                       int epochs, int patience = 5, double minimalImprovement = 0.0001);
+                       int epochs, int patience = 5,
+                       double minimalImprovement = 0.0001);
 
-    // Model saving/loading
+    // Save and load the model.
     void saveModel(const std::string &filename);
     void loadModel(const std::string &filename);
 
 private:
-    // PIMPL: forward-declare the internal implementation structure.
+    // PIMPL–style internal implementation.
     struct Layers;
     Layers *m_Layers;
-    
-    // Training
-    void train(const std::vector<double> &inputs, const std::vector<double> &targets);
-    // Helper functions
+
+    // A backpropagation training step.
+    void train(const std::vector<double> &inputs,
+               const std::vector<double> &targets);
+
+    // Compute the output of a vector of Perceptron (a layer), given the input.
     std::vector<double> computeLayerOutput(const std::vector<Perceptron> &layer,
                                            const std::vector<double> &inputs);
-    double meanSquaredError(const std::vector<double> &outputs,
-                            const std::vector<double> &targets);
 };

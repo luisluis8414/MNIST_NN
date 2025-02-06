@@ -7,28 +7,44 @@
 #include <algorithm>
 #include <limits>
 
+// The Layers structure now contains multiple hidden layers.
 struct MLP::Layers
 {
-    std::vector<Perceptron> hiddenLayer;
+    // Each hidden layer is represented as a vector of Perceptron.
+    std::vector<std::vector<Perceptron>> hiddenLayers;
+    // Outer (output) layer.
     std::vector<Perceptron> outerLayer;
 };
 
-// Constructor: Initialize the MLP with the given sizes and learning rate
-MLP::MLP(int inputSize, int hiddenSize, int outputSize, double learningRate) : m_Layers(new Layers())
+// Constructor: builds the network from input -> (multiple hidden layers) -> output.
+MLP::MLP(int inputSize, const std::vector<int> &hiddenSizes,
+         int outputSize, double learningRate)
+    : m_Layers(new Layers())
 {
-    for (int i = 0; i < hiddenSize; i++)
+    int previousSize = inputSize;
+    // Create each hidden layer.
+    for (int size : hiddenSizes)
     {
-        m_Layers->hiddenLayer.emplace_back(inputSize, learningRate);
+        std::vector<Perceptron> layer;
+        layer.reserve(size);
+        for (int i = 0; i < size; i++)
+        {
+            layer.emplace_back(previousSize, learningRate);
+        }
+        m_Layers->hiddenLayers.push_back(layer);
+        previousSize = size;
     }
+    // Create the output (outer) layer.
     for (int i = 0; i < outputSize; i++)
     {
-        m_Layers->outerLayer.emplace_back(hiddenSize, learningRate);
+        m_Layers->outerLayer.emplace_back(previousSize, learningRate);
     }
 }
 
-// Compute the output of a single layer
-std::vector<double> MLP::computeLayerOutput(const std::vector<Perceptron> &layer,
-                                            const std::vector<double> &inputs)
+// Helper: calculates the output of a single layer.
+std::vector<double>
+MLP::computeLayerOutput(const std::vector<Perceptron> &layer,
+                        const std::vector<double> &inputs)
 {
     if (layer.empty())
     {
@@ -36,7 +52,8 @@ std::vector<double> MLP::computeLayerOutput(const std::vector<Perceptron> &layer
     }
     if (inputs.size() != layer[0].getWeights().size())
     {
-        throw std::invalid_argument("Size of inputs doesn't match perceptron input size");
+        throw std::invalid_argument(
+            "Size of inputs doesn't match perceptron input size");
     }
 
     std::vector<double> outputs(layer.size(), 0.0);
@@ -47,20 +64,117 @@ std::vector<double> MLP::computeLayerOutput(const std::vector<Perceptron> &layer
     return outputs;
 }
 
-// Forward pass
+// Forward pass: propagate input through every hidden layer then the output layer.
 std::vector<double> MLP::forward(const std::vector<double> &inputs)
 {
-    std::vector<double> hiddenOutputs = computeLayerOutput(m_Layers->hiddenLayer, inputs);
-    return computeLayerOutput(m_Layers->outerLayer, hiddenOutputs);
+    std::vector<double> activations = inputs;
+    // Pass through each hidden layer.
+    for (const auto &hiddenLayer : m_Layers->hiddenLayers)
+    {
+        activations = computeLayerOutput(hiddenLayer, activations);
+    }
+    // Pass through the output layer.
+    return computeLayerOutput(m_Layers->outerLayer, activations);
 }
 
-// Mean squared error calculation
-double MLP::meanSquaredError(const std::vector<double> &outputs,
-                             const std::vector<double> &targets)
+// Training step: performs forward propagation (storing all activations)
+// and then backward propagation updating weights for all layers.
+void MLP::train(const std::vector<double> &inputs,
+                const std::vector<double> &targets)
+{
+    // Store activations for each layer; index 0 holds the network input.
+    std::vector<std::vector<double>> layerActivations;
+    layerActivations.push_back(inputs);
+
+    // Forward pass through all hidden layers.
+    for (const auto &hiddenLayer : m_Layers->hiddenLayers)
+    {
+        std::vector<double> activation =
+            computeLayerOutput(hiddenLayer, layerActivations.back());
+        layerActivations.push_back(activation);
+    }
+
+    // Compute the output of the outer (output) layer.
+    std::vector<double> outerOutput =
+        computeLayerOutput(m_Layers->outerLayer, layerActivations.back());
+
+    // Calculate deltas for the output layer.
+    std::vector<double> outputDeltas(m_Layers->outerLayer.size());
+    for (size_t i = 0; i < m_Layers->outerLayer.size(); i++)
+    {
+        double error = outerOutput[i] - targets[i];
+        double derivative = outerOutput[i] * (1.0 - outerOutput[i]);
+        outputDeltas[i] = error * derivative;
+    }
+
+    // Update weights for the output layer.
+    for (size_t i = 0; i < m_Layers->outerLayer.size(); i++)
+    {
+        m_Layers->outerLayer[i].updateWeights(layerActivations.back(),
+                                              outputDeltas[i]);
+    }
+
+    // Propagate error backwards through the hidden layers.
+    std::vector<double> nextDeltas = outputDeltas;
+    // Iterate over hidden layers in reverse.
+    for (int layerIndex =
+             static_cast<int>(m_Layers->hiddenLayers.size()) - 1;
+         layerIndex >= 0; layerIndex--)
+    {
+        std::vector<Perceptron> &currentLayer =
+            m_Layers->hiddenLayers[layerIndex];
+        std::vector<double> &currentActivations =
+            layerActivations[layerIndex + 1];
+
+        std::vector<double> currentDeltas(currentLayer.size());
+        // For each neuron in the current hidden layer, compute its delta.
+        for (size_t i = 0; i < currentLayer.size(); i++)
+        {
+            double error = 0.0;
+            // Determine which layer is next.
+            if (layerIndex ==
+                static_cast<int>(m_Layers->hiddenLayers.size()) - 1)
+            {
+                // Next layer is the output layer.
+                for (size_t k = 0; k < m_Layers->outerLayer.size(); k++)
+                {
+                    error += m_Layers->outerLayer[k].getWeights()[i] *
+                             nextDeltas[k];
+                }
+            }
+            else
+            {
+                // Next layer is another hidden layer.
+                for (size_t k = 0;
+                     k < m_Layers->hiddenLayers[layerIndex + 1].size(); k++)
+                {
+                    error += m_Layers->hiddenLayers[layerIndex + 1][k]
+                                 .getWeights()[i] *
+                             nextDeltas[k];
+                }
+            }
+            double derivative =
+                currentActivations[i] * (1.0 - currentActivations[i]);
+            currentDeltas[i] = error * derivative;
+        }
+        // Update weights for the current hidden layer.
+        for (size_t i = 0; i < currentLayer.size(); i++)
+        {
+            currentLayer[i].updateWeights(layerActivations[layerIndex],
+                                          currentDeltas[i]);
+        }
+        nextDeltas = currentDeltas;
+    }
+}
+
+// A helper for computing mean squared error over one training example.
+double meanSquaredError(const std::vector<double> &outputs,
+                        const std::vector<double> &targets)
 {
     if (outputs.size() != targets.size())
     {
-        throw std::invalid_argument("outputs size doesn't match targets size");
+        throw std::invalid_argument(
+            "Output size doesn't match targets size");
     }
     double error = 0.0;
     for (size_t i = 0; i < outputs.size(); i++)
@@ -70,54 +184,11 @@ double MLP::meanSquaredError(const std::vector<double> &outputs,
     return error / outputs.size();
 }
 
-// Backpropagation training step
-void MLP::train(const std::vector<double> &inputs, const std::vector<double> &targets)
-{
-    std::vector<double> hiddenOutputs = computeLayerOutput(m_Layers->hiddenLayer, inputs);
-    std::vector<double> outerOutputs = computeLayerOutput(m_Layers->outerLayer, hiddenOutputs);
-
-    // Compute output layer error gradients
-    std::vector<double> outputDeltas(m_Layers->outerLayer.size());
-    for (size_t i = 0; i < m_Layers->outerLayer.size(); i++)
-    {
-        double error = outerOutputs[i] - targets[i];
-        // Sigmoid derivative
-        // if preceptron close to 0 or 1, derivative gets small, reducing the error
-        // prevents, strong adjustments at already saturated preceptrons
-        double derivative = outerOutputs[i] * (1.0 - outerOutputs[i]); 
-        outputDeltas[i] = error * derivative;
-    }
-
-    // Update outer layer weights
-    for (size_t i = 0; i < m_Layers->outerLayer.size(); i++)
-    {
-        m_Layers->outerLayer[i].updateWeights(hiddenOutputs, outputDeltas[i]);
-    }
-
-    // Compute hidden layer gradients
-    std::vector<double> hiddenDeltas(m_Layers->hiddenLayer.size());
-    for (size_t i = 0; i < m_Layers->hiddenLayer.size(); i++)
-    {
-        double error = 0.0;
-        for (size_t j = 0; j < m_Layers->outerLayer.size(); j++)
-        {
-            error += outputDeltas[j] * m_Layers->outerLayer[j].getWeights()[i];
-        }
-        double derivative = hiddenOutputs[i] * (1.0 - hiddenOutputs[i]);
-        hiddenDeltas[i] = error * derivative;
-    }
-
-    // Update hidden layer weights
-    for (size_t i = 0; i < m_Layers->hiddenLayer.size(); i++)
-    {
-        m_Layers->hiddenLayer[i].updateWeights(inputs, hiddenDeltas[i]);
-    }
-}
-
-// Training loop with early stopping
+// Training loop with early stopping based on minimal improvement.
 void MLP::startTraining(const std::vector<std::vector<double>> &trainingInputs,
                         const std::vector<std::vector<double>> &trainingTargets,
-                        int epochs, int patience, double minimalImprovement)
+                        int epochs, int patience,
+                        double minimalImprovement)
 {
     double bestMSE = std::numeric_limits<double>::max();
     int epochsWithoutImprovement = 0;
@@ -125,20 +196,17 @@ void MLP::startTraining(const std::vector<std::vector<double>> &trainingInputs,
     for (int epoch = 0; epoch < epochs; epoch++)
     {
         double totalMSE = 0.0;
-        int correctPredictions = 0;
 
         for (size_t i = 0; i < trainingInputs.size(); i++)
         {
             train(trainingInputs[i], trainingTargets[i]);
 
-            std::vector<double> hiddenOutputs = computeLayerOutput(m_Layers->hiddenLayer, trainingInputs[i]);
-            std::vector<double> outerOutputs = computeLayerOutput(m_Layers->outerLayer, hiddenOutputs);
-
-            totalMSE += meanSquaredError(outerOutputs, trainingTargets[i]);
+            // Compute output for MSE calculation.
+            std::vector<double> output = forward(trainingInputs[i]);
+            totalMSE += meanSquaredError(output, trainingTargets[i]);
         }
 
         double avgMSE = totalMSE / trainingInputs.size();
-
         std::cout << "Epoch " << epoch + 1 << " - Average MSE: " << avgMSE << '\n';
 
         if (avgMSE < bestMSE - minimalImprovement)
@@ -160,24 +228,31 @@ void MLP::startTraining(const std::vector<std::vector<double>> &trainingInputs,
     }
 }
 
-// Save the model to a file
+// Save the network model to a file in binary format.
 void MLP::saveModel(const std::string &filename)
 {
-    // output file stream
-    // ibinary mode ensures that data is written in raw binary form without any formatting changes 
     std::ofstream ofs(filename, std::ios::binary);
     if (!ofs)
     {
         throw std::runtime_error("Unable to open file for saving: " + filename);
     }
 
-    size_t hiddenSize = m_Layers->hiddenLayer.size();
-    ofs.write(reinterpret_cast<const char *>(&hiddenSize), sizeof(hiddenSize));
-    for (const Perceptron &perceptron : m_Layers->hiddenLayer)
+    // Save the number and configuration of hidden layers.
+    size_t numHiddenLayers = m_Layers->hiddenLayers.size();
+    ofs.write(reinterpret_cast<const char *>(&numHiddenLayers),
+              sizeof(numHiddenLayers));
+    for (const auto &hiddenLayer : m_Layers->hiddenLayers)
     {
-        perceptron.save(ofs);
+        size_t layerSize = hiddenLayer.size();
+        ofs.write(reinterpret_cast<const char *>(&layerSize),
+                  sizeof(layerSize));
+        for (const Perceptron &perceptron : hiddenLayer)
+        {
+            perceptron.save(ofs);
+        }
     }
 
+    // Save the outer (output) layer.
     size_t outerSize = m_Layers->outerLayer.size();
     ofs.write(reinterpret_cast<const char *>(&outerSize), sizeof(outerSize));
     for (const Perceptron &perceptron : m_Layers->outerLayer)
@@ -187,7 +262,7 @@ void MLP::saveModel(const std::string &filename)
     ofs.close();
 }
 
-// Load the model from a file
+// Load a saved network model from a file.
 void MLP::loadModel(const std::string &filename)
 {
     std::ifstream ifs(filename, std::ios::binary);
@@ -196,14 +271,23 @@ void MLP::loadModel(const std::string &filename)
         throw std::runtime_error("Unable to open file for loading: " + filename);
     }
 
-    size_t hiddenSize;
-    ifs.read(reinterpret_cast<char *>(&hiddenSize), sizeof(hiddenSize));
-    m_Layers->hiddenLayer.resize(hiddenSize);
-    for (size_t i = 0; i < hiddenSize; i++)
+    // Load hidden layers.
+    size_t numHiddenLayers;
+    ifs.read(reinterpret_cast<char *>(&numHiddenLayers),
+             sizeof(numHiddenLayers));
+    m_Layers->hiddenLayers.resize(numHiddenLayers);
+    for (size_t i = 0; i < numHiddenLayers; i++)
     {
-        m_Layers->hiddenLayer[i].load(ifs);
+        size_t layerSize;
+        ifs.read(reinterpret_cast<char *>(&layerSize), sizeof(layerSize));
+        m_Layers->hiddenLayers[i].resize(layerSize);
+        for (size_t j = 0; j < layerSize; j++)
+        {
+            m_Layers->hiddenLayers[i][j].load(ifs);
+        }
     }
 
+    // Load outer (output) layer.
     size_t outerSize;
     ifs.read(reinterpret_cast<char *>(&outerSize), sizeof(outerSize));
     m_Layers->outerLayer.resize(outerSize);
