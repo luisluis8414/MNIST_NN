@@ -2,139 +2,140 @@ workspace "MultiLayerPerception"
    architecture "x64"
    configurations { "Debug", "Release" }
 
--- MLP DLL project
 project "mlp"
-   kind "SharedLib"        -- Build as a DLL
+   kind "SharedLib"
    language "C++"
    cppdialect "C++17"
-   staticruntime "off"     -- Use dynamic runtime libraries
-
-   -- Output directories for binaries and intermediate object files
+   staticruntime "off"
    targetdir "bin/%{cfg.platform}/%{cfg.buildcfg}/mlp"
    objdir "obj/%{cfg.platform}/%{cfg.buildcfg}/mlp"
-
-   -- Specify the files to include in the build
    files { "mlp/include/**.h", "mlp/src/**.cpp" }
-
-   -- Include directories for header files
    includedirs { "mlp/include" }
-
-   -- Platform-specific settings
    filter "system:windows"
-      systemversion "latest"  -- Use the latest Windows SDK
-      defines { "PLATFORM_WINDOWS", "MLP_EXPORT" }  -- Define macros for Windows and DLL export
-
-   -- Debug configuration settings
+      systemversion "latest"
+      defines { "PLATFORM_WINDOWS", "MLP_EXPORT" }
    filter "configurations:Debug"
-      defines "DEBUG"         -- Define the DEBUG macro
-      runtime "Debug"         -- Use the debug runtime library
-      symbols "on"            -- Enable debug symbols for debugging
-
-   -- Release configuration settings
+      defines "DEBUG"
+      runtime "Debug"
+      symbols "on"
    filter "configurations:Release"
-      defines "NDEBUG"        -- Define the NDEBUG macro (no debug)
-      runtime "Release"       -- Use the release runtime library
-      optimize "on"           -- Enable optimizations for better performance
+      defines "NDEBUG"
+      runtime "Release"
+      optimize "on"
 
--- Client / Trainer app project
 project "MNIST"
-   kind "ConsoleApp"         -- Build as a console application
+   kind "ConsoleApp"
    language "C++"
    cppdialect "C++17"
-   staticruntime "off"       -- Use dynamic runtime libraries
-
-   -- Output directories for binaries and intermediate object files
+   staticruntime "off"
    targetdir "bin/%{cfg.platform}/%{cfg.buildcfg}/MNIST"
    objdir "obj/%{cfg.platform}/%{cfg.buildcfg}/MNIST"
-
-   -- Specify the files to include in the build
    files { "MNIST/src/**.hpp", "MNIST/src/**.cpp" }
-
-   -- Include directories for header files
    includedirs { "mlp/include", "MNIST/src", "include" }
-
-   -- Link against the MLP DLL and OpenCV
    libdirs { "bin/%{cfg.platform}/%{cfg.buildcfg}/mlp", "lib" }
    links { "mlp", "opencv_world4110d" }
-
    debugdir "%{cfg.targetdir}"
-   
    postbuildcommands {
       "{COPY} bin/%{cfg.platform}/%{cfg.buildcfg}/mlp/mlp.dll %{cfg.targetdir}",
       "{COPY} MNIST/resources %{cfg.targetdir}/resources",
       "{COPY} MNIST/models %{cfg.targetdir}/models",
    }
-
-   -- Platform-specific settings
    filter "system:windows"
-      systemversion "latest"  -- Use the latest Windows SDK
+      systemversion "latest"
       defines { "PLATFORM_WINDOWS" }
-
-   -- Debug configuration settings
    filter "configurations:Debug"
-      defines "DEBUG"         -- Define the DEBUG macro
-      runtime "Debug"         -- Use the debug runtime library
-      symbols "on"            -- Enable debug symbols for debugging
+      defines "DEBUG"
+      runtime "Debug"
+      symbols "on"
       postbuildcommands {
          "{COPY} vendor/opencv/build/x64/vc16/bin/opencv_world4110d.dll %{cfg.targetdir}",
       }
-
-   -- Release configuration settings
    filter "configurations:Release"
-      defines "NDEBUG"        -- Define the NDEBUG macro (no debug)
-      runtime "Release"       -- Use the release runtime library
-      optimize "on"           -- Enable optimizations for better performance
+      defines "NDEBUG"
+      runtime "Release"
+      optimize "on"
       postbuildcommands {
          "{COPY} vendor/opencv/build/x64/vc16/bin/opencv_world4110.dll %{cfg.targetdir}",
       }
 
--- Client / Trainer app project
 project "draw_and_predict"
-   kind "ConsoleApp"         -- Build as a console application
+   kind "ConsoleApp"
    language "C++"
    cppdialect "C++17"
-   staticruntime "off"       -- Use dynamic runtime libraries
-
-   -- Output directories for binaries and intermediate object files
+   staticruntime "off"
    targetdir "bin/%{cfg.platform}/%{cfg.buildcfg}/draw_and_predict"
    objdir "obj/%{cfg.platform}/%{cfg.buildcfg}/draw_and_predict"
-
-   -- Specify the files to include in the build
    files { "draw_and_predict/src/**.hpp", "draw_and_predict/src/**.cpp" }
-
-   -- Include directories for header files
    includedirs { "mlp/include", "draw_and_predict/src", "include" }
-
-   -- Link against the MLP DLL and OpenCV
    libdirs { "bin/%{cfg.platform}/%{cfg.buildcfg}/mlp", "lib" }
    links { "mlp", "opencv_world4110d" }
-
    debugdir "%{cfg.targetdir}"
-   
    postbuildcommands {
       "{COPY} bin/%{cfg.platform}/%{cfg.buildcfg}/mlp/mlp.dll %{cfg.targetdir}",
       "{COPY} MNIST/models %{cfg.targetdir}/models",
    }
-
-   -- Platform-specific settings
    filter "system:windows"
-      systemversion "latest"  -- Use the latest Windows SDK
+      systemversion "latest"
       defines { "PLATFORM_WINDOWS" }
-
-   -- Debug configuration settings
    filter "configurations:Debug"
-      defines "DEBUG"         -- Define the DEBUG macro
-      runtime "Debug"         -- Use the debug runtime library
-      symbols "on"            -- Enable debug symbols for debugging
+      defines "DEBUG"
+      runtime "Debug"
+      symbols "on"
       postbuildcommands {
          "{COPY} vendor/opencv/build/x64/vc16/bin/opencv_world4110d.dll %{cfg.targetdir}",
       }
-
-   -- Release configuration settings
    filter "configurations:Release"
-      defines "NDEBUG"        -- Define the NDEBUG macro (no debug)
-      runtime "Release"       -- Use the release runtime library
-      optimize "on"           -- Enable optimizations for better performance
+      defines "NDEBUG"
+      runtime "Release"
+      optimize "on"
       postbuildcommands {
          "{COPY} vendor/opencv/build/x64/vc16/bin/opencv_world4110.dll %{cfg.targetdir}",
+      }
+
+project "booster_landing"
+   kind "ConsoleApp"
+   language "C++"
+   cppdialect "C++17"
+   staticruntime "off"
+   targetdir "bin/%{cfg.platform}/%{cfg.buildcfg}/booster_landing"
+   objdir "obj/%{cfg.platform}/%{cfg.buildcfg}/booster_landing"
+   files { "booster_landing/src/**.hpp", "booster_landing/src/**.cpp" }
+   includedirs { "mlp/include", "booster_landing/src", "include" }
+   libdirs { "bin/%{cfg.platform}/%{cfg.buildcfg}/mlp", "lib" }
+   links { "mlp", "opencv_world4110d" }
+   debugdir "%{cfg.targetdir}"
+   postbuildcommands {
+      "{COPY} bin/%{cfg.platform}/%{cfg.buildcfg}/mlp/mlp.dll %{cfg.targetdir}",
+      "{COPY} booster_landing/resources %{cfg.targetdir}/resources",
+   }
+   filter "system:windows"
+      systemversion "latest"
+      defines { "PLATFORM_WINDOWS" }
+   filter "configurations:Debug"
+      defines "DEBUG"
+      runtime "Debug"
+      symbols "on"
+      postbuildcommands {
+         "{COPY} vendor/SFML-3.0.0/bin/sfml-graphics-d-3.dll %{cfg.targetdir}",
+         "{COPY} vendor/SFML-3.0.0/bin/sfml-window-d-3.dll %{cfg.targetdir}",
+         "{COPY} vendor/SFML-3.0.0/bin/sfml-system-d-3.dll %{cfg.targetdir}",
+     }
+      links {
+         "sfml-graphics-d",
+         "sfml-window-d",
+         "sfml-system-d",
+      }
+   filter "configurations:Release"
+      defines "NDEBUG"
+      runtime "Release"
+      optimize "on"
+      postbuildcommands {
+         "{COPY} vendor/SFML-3.0.0/bin/sfml-graphics-3.dll %{cfg.targetdir}",
+         "{COPY} vendor/SFML-3.0.0/bin/sfml-window-3.dll %{cfg.targetdir}",
+         "{COPY} vendor/SFML-3.0.0/bin/sfml-system-3.dll %{cfg.targetdir}",
+      }
+      links {
+         "sfml-graphics",
+         "sfml-window",
+         "sfml-system",
       }
