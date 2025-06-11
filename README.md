@@ -1,20 +1,86 @@
-# Perceptron
+# Neural Network for MNIST Handwritten Digit Recognition
 
-# Multilayer Perceptrons
+A C++ implementation of a Multi-Layer Perceptron (MLP) for recognizing handwritten digits using the MNIST dataset.
 
-## Training the network
+## 🏆 Performance Results
 
-    - backpropagation
-    - gradient desecent
+**Achieved Accuracy: 96.29%** on test set (10,000 samples)
 
-1. Forward Pass: Compute the outputs of the network for a given input.
-2. Compute the Error: Compare the network's output with the expected output (target) using a loss function.
-3. Backward Pass (Backpropagation): Compute the gradients of the loss with respect to the weights and biases of each perceptron.
-4. Update Weights and Biases: Use the gradients to adjust the weights and biases using gradient descent.
+### Per-Digit Accuracy Breakdown:
+| Digit | Accuracy | Correct/Total |
+|-------|----------|---------------|
+| 0     | 98.47%   | 965/980       |
+| 1     | 98.50%   | 1118/1135     |
+| 2     | 96.03%   | 991/1032      |
+| 3     | 95.45%   | 964/1010      |
+| 4     | 96.44%   | 947/982       |
+| 5     | 94.96%   | 847/892       |
+| 6     | 97.29%   | 932/958       |
+| 7     | 95.82%   | 985/1028      |
+| 8     | 94.97%   | 925/974       |
+| 9     | 94.65%   | 955/1009      |
 
+## 🧠 Network Architecture
 
-dependencies: 
-    - [opencv](https://github.com/opencv/opencv)
+- **Input Layer**: 784 neurons (28×28 pixel images)
+- **Hidden Layer 1**: 128 neurons
+- **Hidden Layer 2**: 64 neurons  
+- **Output Layer**: 10 neurons (digits 0-9)
+- **Activation Function**: Sigmoid
+- **Learning Rate**: 0.01
+- **Training Epochs**: 100
 
-data used: 
-    [MNIST in CSV](https://pjreddie.com/projects/mnist-in-csv/)
+## 🔬 Training Algorithm
+
+### Backpropagation with Gradient Descent
+
+1. **Forward Pass**: Compute the outputs of the network for a given input
+2. **Compute Error**: Compare network output with expected output using loss function
+3. **Backward Pass (Backpropagation)**: Compute gradients of loss with respect to weights and biases
+4. **Update Weights**: Adjust weights and biases using gradient descent
+
+### Early Stopping
+- **Patience**: 5 epochs
+- **Minimal Improvement**: 0.0001
+- **Metric**: Mean Squared Error on training data
+
+## 🚀 Getting Started
+
+### Build the Project
+```bash
+premake5 vs2022
+msbuild MultiLayerPerception.sln /p:Configuration=Debug /p:Platform=x64
+```
+
+### Train a New Model
+1. Uncomment `train();` in `MNIST/src/main.cpp`
+2. Build and run the MNIST project
+
+### Evaluate Pre-trained Model
+```bash
+cd bin/Debug/MNIST
+./MNIST.exe
+```
+
+## 📊 Dataset
+
+**Training Set**: 60,000 images from `mnist_train.csv`  
+**Test Set**: 10,000 images from `mnist_test.csv`
+
+Data source: [MNIST in CSV format](https://pjreddie.com/projects/mnist-in-csv/)
+
+## 🛠️ Dependencies
+
+- [OpenCV](https://github.com/opencv/opencv) - Computer vision library
+- Visual Studio 2019/2022 - C++ compiler
+- Premake5 - Build system generator
+
+## 📁 Project Structure
+
+```
+NN/
+├── mlp/                    # Core neural network library
+├── MNIST/                  # MNIST training & evaluation
+├── draw_and_predict/       # Interactive digit drawing app
+└── README.md
+```
