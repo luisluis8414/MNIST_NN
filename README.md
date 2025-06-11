@@ -2,6 +2,12 @@
 
 A C++ implementation of a Multi-Layer Perceptron (MLP) for recognizing handwritten digits using the MNIST dataset.
 
+## 🎯 Demo
+
+![Demo](assets/demo.gif)
+
+*Interactive drawing application with real-time digit recognition*
+
 ## 🏆 Performance Results
 
 **Achieved Accuracy: 96.29%** on test set (10,000 samples)
@@ -85,6 +91,38 @@ cd bin/Debug/MNIST
 ./MNIST.exe
 ```
 
+### Use Interactive Drawing Application
+
+The `draw_and_predict` application provides a GUI for drawing digits and getting real-time predictions.
+
+#### Prerequisites
+- Ensure you have a trained model in the `models/` directory
+- OpenCV must be properly installed and configured
+
+#### Compile and Run
+```bash
+# Navigate to the drawing application directory
+cd draw_and_predict
+
+# Compile the application
+make
+
+# Run the application
+./draw_and_predict
+```
+
+#### How to Use
+1. **Draw**: Use your mouse to draw a digit (0-9) in the drawing area
+2. **Predict**: Click the "PREDICT" button to recognize the drawn digit
+3. **Clear**: Click the "CLEAR" button to clear the canvas and start over
+4. **Exit**: Press ESC key or click the X button to close the application
+
+#### Features
+- **Real-time drawing** with smooth brush strokes
+- **Instant recognition** results with confidence scores
+- **Probability bars** showing likelihood for each digit (0-9)
+- **Professional GUI** with intuitive controls
+
 ## 📊 Dataset
 
 **Training Set**: 60,000 images from `mnist_train.csv`  
@@ -109,3 +147,14 @@ NN/
 ├── scripts/                # Build scripts
 └── README.md
 ```
+
+## 🚀 Future Improvements
+
+### 🧠 Neural Network Enhancements
+- **Convolutional Neural Networks (CNN)**: Implement convolutional layers for better spatial feature extraction
+- **Alternative Activation Functions**:
+  - ReLU and variants (Leaky ReLU,)
+- **Regularization Techniques**:
+  - Dropout layers to prevent overfitting
+  - Batch normalization for stable training
+  - L1/L2 weight regularization
