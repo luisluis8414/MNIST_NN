@@ -44,12 +44,35 @@ A C++ implementation of a Multi-Layer Perceptron (MLP) for recognizing handwritt
 - **Minimal Improvement**: 0.0001
 - **Metric**: Mean Squared Error on training data
 
+## 📁 Project Components
+
+- **MNIST Training (`MNIST/`)**:
+    - Purpose: Handles the training and evaluation of neural network models using the MNIST dataset.
+    - Key files: `MNIST/src/main.cpp` is the main entry point for training-related tasks. Model configurations and outputs are typically stored in `MNIST/models/`.
+
+- **Interactive Prediction (`draw_and_predict/`)**:
+    - Purpose: An SFML-based graphical application that allows users to draw a digit with the mouse and have a pre-trained model predict the digit.
+    - Key files: `draw_and_predict/src/main.cpp` contains the logic for the interactive drawing and prediction interface.
+
+- **MLP Library (`mlp/`)**:
+    - Purpose: A foundational library providing the implementation of a Multi-Layer Perceptron. This includes the core neural network structures like perceptrons, layers, and the backpropagation algorithm.
+    - Key files: Key interface is `mlp/include/mlp.h` and its implementation `mlp/src/mlp.cpp`. The basic building block, the perceptron, is defined in `mlp/include/perceptron.h`.
+
 ## 🚀 Getting Started
 
 ### Build the Project
+
+The project uses Premake5 for build configuration.
+
+#### Option 1: Using Premake5 directly
 ```bash
 premake5 vs2022
 msbuild MultiLayerPerception.sln /p:Configuration=Debug /p:Platform=x64
+```
+
+#### Option 2: Using build script (Windows)
+```bash
+scripts/build.bat
 ```
 
 ### Train a New Model
@@ -71,7 +94,8 @@ Data source: [MNIST in CSV format](https://pjreddie.com/projects/mnist-in-csv/)
 
 ## 🛠️ Dependencies
 
-- [OpenCV](https://github.com/opencv/opencv) - Computer vision library
+- [OpenCV](https://github.com/opencv/opencv) 4.11.0 - Computer vision library
+- [SFML](https://www.sfml-dev.org/) 3.0.0 - Simple and Fast Multimedia Library (for interactive drawing app)
 - Visual Studio 2019/2022 - C++ compiler
 - Premake5 - Build system generator
 
@@ -82,5 +106,6 @@ NN/
 ├── mlp/                    # Core neural network library
 ├── MNIST/                  # MNIST training & evaluation
 ├── draw_and_predict/       # Interactive digit drawing app
+├── scripts/                # Build scripts
 └── README.md
 ```
