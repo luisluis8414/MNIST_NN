@@ -5,6 +5,7 @@
 #include <string>
 #include <stdexcept>
 #include <sstream>
+#include <algorithm>
 
 #include <opencv2/opencv.hpp>
 
@@ -27,6 +28,12 @@ const int OUTPUT_SIZE = 10; // Digits 0 to 9
 //============================================================================
 // Helper Functions
 //============================================================================
+
+// Get predicted class from network output (index of maximum value)
+int getPredictedClass(const std::vector<double> &output)
+{
+    return static_cast<int>(std::max_element(output.begin(), output.end()) - output.begin());
+}
 
 // One-hot encode an integer label (assumes classes 0 to 9)
 std::vector<double> oneHotEncode(int label, int numClasses = OUTPUT_SIZE)
@@ -108,6 +115,82 @@ void train()
 // Evaluation Functionality
 //============================================================================
 
+void evaluateModel(std::string modelPath = buildModelPath())
+{
+    std::string csvTestingFile = "resources/training_data/mnist_test.csv";
+
+    // two hidden layers
+    std::vector<int> hiddenLayers = {HIDDEN_NEURONS_LAYER1, HIDDEN_NEURONS_LAYER2};
+
+    // Note: The learning rate here is not used in inference.
+    MLP mlp(INPUT_SIZE, hiddenLayers, OUTPUT_SIZE, 0.01);
+
+    mlp.loadModel(modelPath);
+    std::cout << "Model loaded successfully from file: " << modelPath << std::endl;
+
+    CsvReader testReader(csvTestingFile);
+
+    // Comprehensive evaluation on full test set
+    std::cout << "\n----- Evaluating on full test set -----" << std::endl;
+
+    int totalSamples = 0;
+    int correctPredictions = 0;
+    std::vector<int> classCorrect(10, 0); // Track correct predictions per digit
+    std::vector<int> classTotal(10, 0);   // Track total samples per digit
+
+    try
+    {
+        while (!testReader.eof())
+        {
+            auto [testLabel, testPixels] = testReader.getLabelAndPixels();
+            std::vector<double> testInput = normalizePixels(testPixels);
+            auto output = mlp.forward(testInput);
+
+            int predictedClass = getPredictedClass(output);
+
+            totalSamples++;
+            classTotal[testLabel]++;
+
+            if (predictedClass == testLabel)
+            {
+                correctPredictions++;
+                classCorrect[testLabel]++;
+            }
+
+            // Show progress every 1000 samples
+            if (totalSamples % 1000 == 0)
+            {
+                std::cout << "Processed " << totalSamples << " samples..." << std::endl;
+            }
+        }
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << "Evaluation completed early due to: " << e.what() << std::endl;
+        std::cout << "Total samples processed: " << totalSamples << std::endl;
+    }
+
+    // Calculate and display results
+    double accuracy = static_cast<double>(correctPredictions) / totalSamples * 100.0;
+
+    std::cout << "\n==================== EVALUATION RESULTS ====================" << std::endl;
+    std::cout << "Total samples tested: " << totalSamples << std::endl;
+    std::cout << "Correct predictions: " << correctPredictions << std::endl;
+    std::cout << "Overall accuracy: " << accuracy << "%" << std::endl;
+
+    std::cout << "\n----- Per-digit accuracy -----" << std::endl;
+    for (int digit = 0; digit < 10; digit++)
+    {
+        if (classTotal[digit] > 0)
+        {
+            double digitAccuracy = static_cast<double>(classCorrect[digit]) / classTotal[digit] * 100.0;
+            std::cout << "Digit " << digit << ": " << digitAccuracy << "% ("
+                      << classCorrect[digit] << "/" << classTotal[digit] << ")" << std::endl;
+        }
+    }
+    std::cout << "==========================================================" << std::endl;
+}
+
 void loadModel(std::string modelPath = buildModelPath())
 {
     std::string csvTestingFile = "resources/training_data/mnist_test.csv";
@@ -132,14 +215,14 @@ void loadModel(std::string modelPath = buildModelPath())
         std::vector<double> testInput = normalizePixels(testPixels);
         auto output = mlp.forward(testInput);
 
+        int predictedClass = getPredictedClass(output);
+        bool isCorrect = (predictedClass == testLabel);
+
         std::cout << "\nSample " << i + 1 << ":" << std::endl;
         std::cout << "Expected Label: " << testLabel << std::endl;
-        std::cout << "MLP Output: { ";
-        for (const auto &val : output)
-        {
-            std::cout << val << " ";
-        }
-        std::cout << "}" << std::endl;
+        std::cout << "Predicted Label: " << predictedClass << std::endl;
+        std::cout << "Correct: " << (isCorrect ? "YES" : "NO") << std::endl;
+        std::cout << "Confidence: " << output[predictedClass] << std::endl;
     }
 }
 
@@ -154,7 +237,11 @@ int main()
         // Uncomment the following line to train a new model.
         // train();
 
+        // Quick test on 20 samples with detailed output
         loadModel("models/model_0.01_100_60000_128_64");
+
+        // Comprehensive evaluation on full test set
+        evaluateModel("models/model_0.01_100_60000_128_64");
     }
     catch (const std::exception &e)
     {
