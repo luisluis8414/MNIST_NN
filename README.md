@@ -4,14 +4,38 @@ A C++ implementation of a Multi-Layer Perceptron (MLP) for recognizing handwritt
 
 ## 🚀 Building the Project
 
+### Platform Support
+This project was developed and tested on Windows. While the code might work on Linux/Mac with modifications, it has not been tested on those platforms.
+
+### Required Dependencies
+Before building, you need to set up the following libraries in the `vendor` directory:
+
+1. **OpenCV 4.11.0**
+   - Download from: https://opencv.org/releases/
+   - Extract to: `vendor/opencv/`
+   - Build the library following OpenCV's Windows build instructions
+
+2. **SFML 3.0.0**
+   - Download from: https://www.sfml-dev.org/download.php
+   - Extract to: `vendor/SFML-3.0.0/`
+   - Ensure the directory contains the following structure:
+     - `vendor/SFML-3.0.0/lib/`
+     - `vendor/SFML-3.0.0/include/`
+     - `vendor/SFML-3.0.0/bin/`
+
+3. **Premake5**
+   - Download from: https://premake.github.io/
+   - Add to your system PATH or place in `vendor/premake5/`
+
 ### Build Scripts
 
-The project uses a single build script `scripts/build.bat` with the following options:
+The project uses a single build script that must be run from the project root:
 
-- `build.bat` - Builds Release configuration (default)
-- `build.bat debug` - Builds Debug configuration
-- `build.bat release` - Builds Release configuration explicitly
-- `build.bat all` - Builds both Debug and Release configurations
+```batch
+.\scripts\build.bat Release  # Builds Release configuration (default)
+.\scripts\build.bat Debug    # Builds Debug configuration
+.\scripts\build.bat All      # Builds both Debug and Release configurations
+```
 
 ### Performance Note
 - Release mode is recommended for training (5-10x faster)
@@ -111,9 +135,9 @@ This neural network runs entirely on CPU, which means training can be quite slow
 2. Build and run the MNIST project
 
 ### Evaluate Pre-trained Model
-```bash
-cd bin/Release/MNIST
-./MNIST.exe
+```batch
+cd bin\Release\MNIST
+.\MNIST.exe
 ```
 
 ### Use Interactive Drawing Application
@@ -127,7 +151,7 @@ The `draw_and_predict` application provides a GUI for drawing digits and getting
 #### Build and Run
 ```batch
 # Build the project (includes draw_and_predict)
-scripts\build.bat
+.\scripts\build.bat Release
 
 # Navigate to the executable directory and run
 cd bin\Release\draw_and_predict
@@ -136,7 +160,7 @@ cd bin\Release\draw_and_predict
 
 You can also build and run in debug mode if needed:
 ```batch
-scripts\build.bat debug
+.\scripts\build.bat Debug
 cd bin\Debug\draw_and_predict
 .\draw_and_predict.exe
 ```
