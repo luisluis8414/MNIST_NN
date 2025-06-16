@@ -51,5 +51,9 @@ private:
 
     // Compute the output of a vector of Perceptron (a layer), given the input.
     std::vector<double> computeLayerOutput(const std::vector<Perceptron> &layer,
-                                           const std::vector<double> &inputs);
+                                           const std::vector<double> &inputs,
+                                           bool skipActivation = false);
+
+    // Apply softmax to a vector of values
+    std::vector<double> applySoftmax(const std::vector<double> &inputs);
 };

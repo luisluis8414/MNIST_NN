@@ -24,8 +24,8 @@ Perceptron::Perceptron(int n, double learningRate)
 // Default constructor for loading from file
 Perceptron::Perceptron() : m_bias(0.0), m_learningRate(0.1) {}
 
-// Calculate the sum of all weights multiplied by inputs plus bias
-double Perceptron::calcOutput(const std::vector<double> &inputs) const
+// Calculate raw output (weighted sum + bias) without activation
+double Perceptron::calcOutputRaw(const std::vector<double> &inputs) const
 {
     if (inputs.size() != m_weights.size())
     {
@@ -37,7 +37,13 @@ double Perceptron::calcOutput(const std::vector<double> &inputs) const
     {
         sum += m_weights[i] * inputs[i];
     }
-    return activate(sum);
+    return sum;
+}
+
+// Calculate output with activation function
+double Perceptron::calcOutput(const std::vector<double> &inputs) const
+{
+    return activate(calcOutputRaw(inputs));
 }
 
 // Sigmoid activation function

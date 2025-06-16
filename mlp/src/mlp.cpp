@@ -44,7 +44,8 @@ MLP::MLP(int inputSize, const std::vector<int> &hiddenSizes,
 // Helper: calculates the output of a single layer.
 std::vector<double>
 MLP::computeLayerOutput(const std::vector<Perceptron> &layer,
-                        const std::vector<double> &inputs)
+                        const std::vector<double> &inputs,
+                        bool skipActivation)
 {
     if (layer.empty())
     {
@@ -59,22 +60,51 @@ MLP::computeLayerOutput(const std::vector<Perceptron> &layer,
     std::vector<double> outputs(layer.size(), 0.0);
     for (size_t i = 0; i < layer.size(); i++)
     {
-        outputs[i] = layer[i].calcOutput(inputs);
+        outputs[i] = layer[i].calcOutputRaw(inputs); // Get raw output
+        if (!skipActivation)
+        {
+            outputs[i] = 1.0 / (1.0 + std::exp(-outputs[i])); // Apply sigmoid only for hidden layers
+        }
     }
     return outputs;
+}
+
+// Helper: applies softmax to a vector of values
+std::vector<double> MLP::applySoftmax(const std::vector<double> &inputs)
+{
+    std::vector<double> output(inputs.size());
+
+    // Find max for numerical stability
+    double maxVal = *std::max_element(inputs.begin(), inputs.end());
+
+    // Calculate exp(x - max) and sum
+    double sum = 0.0;
+    for (size_t i = 0; i < inputs.size(); i++)
+    {
+        output[i] = std::exp(inputs[i] - maxVal);
+        sum += output[i];
+    }
+
+    // Normalize
+    for (size_t i = 0; i < inputs.size(); i++)
+    {
+        output[i] /= sum;
+    }
+
+    return output;
 }
 
 // Forward pass: propagate input through every hidden layer then the output layer.
 std::vector<double> MLP::forward(const std::vector<double> &inputs)
 {
     std::vector<double> activations = inputs;
-    // Pass through each hidden layer.
+    // Pass through each hidden layer with sigmoid activation
     for (const auto &hiddenLayer : m_Layers->hiddenLayers)
     {
-        activations = computeLayerOutput(hiddenLayer, activations);
+        activations = computeLayerOutput(hiddenLayer, activations, false);
     }
-    // Pass through the output layer.
-    return computeLayerOutput(m_Layers->outerLayer, activations);
+    // Pass through the output layer without activation, then apply softmax
+    return applySoftmax(computeLayerOutput(m_Layers->outerLayer, activations, true));
 }
 
 // Training step: performs forward propagation (storing all activations)
@@ -86,39 +116,36 @@ void MLP::train(const std::vector<double> &inputs,
     std::vector<std::vector<double>> layerActivations;
     layerActivations.push_back(inputs);
 
-    // Forward pass through all hidden layers.
+    // Forward pass through all hidden layers with sigmoid
     for (const auto &hiddenLayer : m_Layers->hiddenLayers)
     {
         std::vector<double> activation =
-            computeLayerOutput(hiddenLayer, layerActivations.back());
+            computeLayerOutput(hiddenLayer, layerActivations.back(), false);
         layerActivations.push_back(activation);
     }
 
-    // Compute the output of the outer (output) layer.
-    std::vector<double> outerOutput =
-        computeLayerOutput(m_Layers->outerLayer, layerActivations.back());
+    // Compute raw outputs and softmax for the output layer
+    std::vector<double> rawOutputs = computeLayerOutput(m_Layers->outerLayer, layerActivations.back(), true);
+    std::vector<double> softmaxOutputs = applySoftmax(rawOutputs);
 
-    // Calculate deltas for the output layer.
+    // Calculate deltas for the output layer using softmax derivative
     std::vector<double> outputDeltas(m_Layers->outerLayer.size());
     for (size_t i = 0; i < m_Layers->outerLayer.size(); i++)
     {
-        double error = outerOutput[i] - targets[i];
-        double derivative = outerOutput[i] * (1.0 - outerOutput[i]);
-        outputDeltas[i] = error * derivative;
+        // For softmax + cross-entropy loss, the gradient simplifies to (output - target)
+        outputDeltas[i] = softmaxOutputs[i] - targets[i];
     }
 
-    // Update weights for the output layer.
+    // Update weights for the output layer
     for (size_t i = 0; i < m_Layers->outerLayer.size(); i++)
     {
         m_Layers->outerLayer[i].updateWeights(layerActivations.back(),
                                               outputDeltas[i]);
     }
 
-    // Propagate error backwards through the hidden layers.
+    // Propagate error backwards through the hidden layers using sigmoid derivative
     std::vector<double> nextDeltas = outputDeltas;
-    // Iterate over hidden layers in reverse.
-    for (int layerIndex =
-             static_cast<int>(m_Layers->hiddenLayers.size()) - 1;
+    for (int layerIndex = static_cast<int>(m_Layers->hiddenLayers.size()) - 1;
          layerIndex >= 0; layerIndex--)
     {
         std::vector<Perceptron> &currentLayer =
@@ -127,15 +154,12 @@ void MLP::train(const std::vector<double> &inputs,
             layerActivations[layerIndex + 1];
 
         std::vector<double> currentDeltas(currentLayer.size());
-        // For each neuron in the current hidden layer, compute its delta.
         for (size_t i = 0; i < currentLayer.size(); i++)
         {
             double error = 0.0;
-            // Determine which layer is next.
-            if (layerIndex ==
-                static_cast<int>(m_Layers->hiddenLayers.size()) - 1)
+            if (layerIndex == static_cast<int>(m_Layers->hiddenLayers.size()) - 1)
             {
-                // Next layer is the output layer.
+                // Next layer is the output layer
                 for (size_t k = 0; k < m_Layers->outerLayer.size(); k++)
                 {
                     error += m_Layers->outerLayer[k].getWeights()[i] *
@@ -144,20 +168,20 @@ void MLP::train(const std::vector<double> &inputs,
             }
             else
             {
-                // Next layer is another hidden layer.
-                for (size_t k = 0;
-                     k < m_Layers->hiddenLayers[layerIndex + 1].size(); k++)
+                // Next layer is another hidden layer
+                for (size_t k = 0; k < m_Layers->hiddenLayers[layerIndex + 1].size(); k++)
                 {
                     error += m_Layers->hiddenLayers[layerIndex + 1][k]
                                  .getWeights()[i] *
                              nextDeltas[k];
                 }
             }
-            double derivative =
-                currentActivations[i] * (1.0 - currentActivations[i]);
+            // Use sigmoid derivative for hidden layers
+            double derivative = currentActivations[i] * (1.0 - currentActivations[i]);
             currentDeltas[i] = error * derivative;
         }
-        // Update weights for the current hidden layer.
+
+        // Update weights for the current hidden layer
         for (size_t i = 0; i < currentLayer.size(); i++)
         {
             currentLayer[i].updateWeights(layerActivations[layerIndex],

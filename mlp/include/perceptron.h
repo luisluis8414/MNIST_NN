@@ -12,6 +12,9 @@ public:
     // Forward pass
     double calcOutput(const std::vector<double> &inputs) const;
 
+    // Calculate raw output without activation
+    double calcOutputRaw(const std::vector<double> &inputs) const;
+
     // Activation function
     double activate(double x) const;
 
