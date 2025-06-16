@@ -2,6 +2,30 @@
 
 A C++ implementation of a Multi-Layer Perceptron (MLP) for recognizing handwritten digits using the MNIST dataset.
 
+## 🎯 Demo
+
+![Demo](assets/demo.gif)
+
+*Interactive drawing application with real-time digit recognition*
+
+## 🏆 Performance Results
+
+**Achieved Accuracy: 96.48%** on test set (10,000 samples)
+
+### Per-Digit Accuracy Breakdown:
+| Digit | Accuracy | Correct/Total |
+|-------|----------|---------------|
+| 0     | 98.37%   | 964/980       |
+| 1     | 98.59%   | 1119/1135     |
+| 2     | 95.54%   | 986/1032      |
+| 3     | 96.34%   | 973/1010      |
+| 4     | 96.44%   | 947/982       |
+| 5     | 94.73%   | 845/892       |
+| 6     | 96.35%   | 923/958       |
+| 7     | 96.69%   | 994/1028      |
+| 8     | 96.10%   | 936/974       |
+| 9     | 95.24%   | 961/1009      |
+
 ## 🚀 Building the Project
 
 ### Platform Support
@@ -41,30 +65,6 @@ The project uses a single build script that must be run from the project root:
 - Release mode is recommended for training (5-10x faster)
 - Debug mode training could take several hours
 - Drawing application works fine in either mode
-
-## 🎯 Demo
-
-![Demo](assets/demo.gif)
-
-*Interactive drawing application with real-time digit recognition*
-
-## 🏆 Performance Results
-
-**Achieved Accuracy: 96.48%** on test set (10,000 samples)
-
-### Per-Digit Accuracy Breakdown:
-| Digit | Accuracy | Correct/Total |
-|-------|----------|---------------|
-| 0     | 98.37%   | 964/980       |
-| 1     | 98.59%   | 1119/1135     |
-| 2     | 95.54%   | 986/1032      |
-| 3     | 96.34%   | 973/1010      |
-| 4     | 96.44%   | 947/982       |
-| 5     | 94.73%   | 845/892       |
-| 6     | 96.35%   | 923/958       |
-| 7     | 96.69%   | 994/1028      |
-| 8     | 96.10%   | 936/974       |
-| 9     | 95.24%   | 961/1009      |
 
 ## 🧠 Network Architecture
 
