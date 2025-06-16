@@ -33,7 +33,7 @@ project "MNIST"
    files { "MNIST/src/**.hpp", "MNIST/src/**.cpp" }
    includedirs { "mlp/include", "MNIST/src", "include" }
    libdirs { "bin/%{cfg.platform}/%{cfg.buildcfg}/mlp", "lib" }
-   links { "mlp", "opencv_world4110d" }
+   links { "mlp" }
    debugdir "%{cfg.targetdir}"
    postbuildcommands {
       "{COPY} bin/%{cfg.platform}/%{cfg.buildcfg}/mlp/mlp.dll %{cfg.targetdir}",
@@ -47,6 +47,7 @@ project "MNIST"
       defines "DEBUG"
       runtime "Debug"
       symbols "on"
+      links { "opencv_world4110d" }
       postbuildcommands {
          "{COPY} vendor/opencv/build/x64/vc16/bin/opencv_world4110d.dll %{cfg.targetdir}",
       }
@@ -54,6 +55,7 @@ project "MNIST"
       defines "NDEBUG"
       runtime "Release"
       optimize "on"
+      links { "opencv_world4110" }
       postbuildcommands {
          "{COPY} vendor/opencv/build/x64/vc16/bin/opencv_world4110.dll %{cfg.targetdir}",
       }
@@ -68,7 +70,7 @@ project "draw_and_predict"
    files { "draw_and_predict/src/**.hpp", "draw_and_predict/src/**.cpp" }
    includedirs { "mlp/include", "draw_and_predict/src", "include" }
    libdirs { "bin/%{cfg.platform}/%{cfg.buildcfg}/mlp", "lib" }
-   links { "mlp", "opencv_world4110d" }
+   links { "mlp" }
    debugdir "%{cfg.targetdir}"
    postbuildcommands {
       "{COPY} bin/%{cfg.platform}/%{cfg.buildcfg}/mlp/mlp.dll %{cfg.targetdir}",
@@ -81,6 +83,7 @@ project "draw_and_predict"
       defines "DEBUG"
       runtime "Debug"
       symbols "on"
+      links { "opencv_world4110d" }
       postbuildcommands {
          "{COPY} vendor/opencv/build/x64/vc16/bin/opencv_world4110d.dll %{cfg.targetdir}",
       }
@@ -88,6 +91,7 @@ project "draw_and_predict"
       defines "NDEBUG"
       runtime "Release"
       optimize "on"
+      links { "opencv_world4110" }
       postbuildcommands {
          "{COPY} vendor/opencv/build/x64/vc16/bin/opencv_world4110.dll %{cfg.targetdir}",
       }

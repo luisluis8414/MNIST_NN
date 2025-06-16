@@ -35,7 +35,7 @@ public:
                        const std::vector<std::vector<double>> &trainingTargets,
                        const std::vector<std::vector<double>> &validationInputs,
                        const std::vector<std::vector<double>> &validationTargets,
-                       int epochs, int patience = 10,
+                       int epochs, int patience = 5,
                        double minimalImprovement = 0.001);
 
     // Save and load the model.

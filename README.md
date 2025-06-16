@@ -2,6 +2,22 @@
 
 A C++ implementation of a Multi-Layer Perceptron (MLP) for recognizing handwritten digits using the MNIST dataset.
 
+## 🚀 Building the Project
+
+### Build Scripts
+
+The project uses a single build script `scripts/build.bat` with the following options:
+
+- `build.bat` - Builds Release configuration (default)
+- `build.bat debug` - Builds Debug configuration
+- `build.bat release` - Builds Release configuration explicitly
+- `build.bat all` - Builds both Debug and Release configurations
+
+### Performance Note
+- Release mode is recommended for training (5-10x faster)
+- Debug mode training could take several hours
+- Drawing application works fine in either mode
+
 ## 🎯 Demo
 
 ![Demo](assets/demo.gif)
@@ -48,7 +64,7 @@ A C++ implementation of a Multi-Layer Perceptron (MLP) for recognizing handwritt
 ### Early Stopping
 - **Dataset Split**: 80% training, 20% validation
 - **Metric**: Validation accuracy (not training error)
-- **Patience**: 10 epochs
+- **Patience**: 5 epochs
 - **Minimal Improvement**: 0.1% increase in validation accuracy
 - **Maximum Epochs**: 100 (may stop earlier due to early stopping)
 
