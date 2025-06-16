@@ -26,21 +26,21 @@ The project uses a single build script `scripts/build.bat` with the following op
 
 ## 🏆 Performance Results
 
-**Achieved Accuracy: 96.29%** on test set (10,000 samples)
+**Achieved Accuracy: 96.48%** on test set (10,000 samples)
 
 ### Per-Digit Accuracy Breakdown:
 | Digit | Accuracy | Correct/Total |
 |-------|----------|---------------|
-| 0     | 98.47%   | 965/980       |
-| 1     | 98.50%   | 1118/1135     |
-| 2     | 96.03%   | 991/1032      |
-| 3     | 95.45%   | 964/1010      |
+| 0     | 98.37%   | 964/980       |
+| 1     | 98.59%   | 1119/1135     |
+| 2     | 95.54%   | 986/1032      |
+| 3     | 96.34%   | 973/1010      |
 | 4     | 96.44%   | 947/982       |
-| 5     | 94.96%   | 847/892       |
-| 6     | 97.29%   | 932/958       |
-| 7     | 95.82%   | 985/1028      |
-| 8     | 94.97%   | 925/974       |
-| 9     | 94.65%   | 955/1009      |
+| 5     | 94.73%   | 845/892       |
+| 6     | 96.35%   | 923/958       |
+| 7     | 96.69%   | 994/1028      |
+| 8     | 96.10%   | 936/974       |
+| 9     | 95.24%   | 961/1009      |
 
 ## 🧠 Network Architecture
 
@@ -150,10 +150,16 @@ make
 
 ## 📊 Dataset
 
-**Training Set**: 60,000 images from `mnist_train.csv`  
-**Test Set**: 10,000 images from `mnist_test.csv`
+The MNIST dataset is split into three sets:
+
+**Total Dataset**: 70,000 images
+- **Training Set**: 48,000 images (80% of original training data)
+- **Validation Set**: 12,000 images (20% of original training data)
+- **Test Set**: 10,000 images (separate test set)
 
 Data source: [MNIST in CSV format](https://pjreddie.com/projects/mnist-in-csv/)
+
+The original `mnist_train.csv` (60,000 images) is split 80/20 into training and validation sets during the training process. The `mnist_test.csv` (10,000 images) is kept completely separate and only used for final model evaluation.
 
 ## 🛠️ Dependencies
 
