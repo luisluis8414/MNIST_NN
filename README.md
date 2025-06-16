@@ -29,7 +29,7 @@ A C++ implementation of a Multi-Layer Perceptron (MLP) for recognizing handwritt
 ## 🚀 Building the Project
 
 ### Platform Support
-This project was developed and tested on Windows. While the code might work on Linux/Mac with modifications, it has not been tested on those platforms.
+This project was developed and tested on Windows. While the code might work on Linux/Mac, it has not been tested on those platforms.
 
 ### Required Dependencies
 Before building, you need to set up the following libraries in the `vendor` directory:
