@@ -247,7 +247,7 @@ int main()
     try
     {
         // Uncomment the following line to train a new model.
-        train();
+        // train();
 
         // Quick test on 20 samples with detailed output
         loadModel("models/model_0.01_100_60000_128_64");

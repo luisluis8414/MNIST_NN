@@ -112,7 +112,7 @@ This neural network runs entirely on CPU, which means training can be quite slow
 
 ### Evaluate Pre-trained Model
 ```bash
-cd bin/Debug/MNIST
+cd bin/Release/MNIST
 ./MNIST.exe
 ```
 
@@ -124,16 +124,21 @@ The `draw_and_predict` application provides a GUI for drawing digits and getting
 - Ensure you have a trained model in the `models/` directory
 - OpenCV must be properly installed and configured
 
-#### Compile and Run
-```bash
-# Navigate to the drawing application directory
-cd draw_and_predict
+#### Build and Run
+```batch
+# Build the project (includes draw_and_predict)
+scripts\build.bat
 
-# Compile the application
-make
+# Navigate to the executable directory and run
+cd bin\Release\draw_and_predict
+.\draw_and_predict.exe
+```
 
-# Run the application
-./draw_and_predict
+You can also build and run in debug mode if needed:
+```batch
+scripts\build.bat debug
+cd bin\Debug\draw_and_predict
+.\draw_and_predict.exe
 ```
 
 #### How to Use
