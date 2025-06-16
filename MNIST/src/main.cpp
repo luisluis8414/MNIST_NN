@@ -16,7 +16,7 @@
 // Parameters
 //============================================================================
 const double LEARNING_RATE = 0.01;
-const int EPOCHS = 100;
+const int EPOCHS = 100; // 100 epochs but early stopping stopps way earlier
 const int TRAINING_SAMPLES = 60000;
 const int HIDDEN_NEURONS_LAYER1 = 128;
 const int HIDDEN_NEURONS_LAYER2 = 64;
@@ -85,15 +85,26 @@ void train()
     std::string csvTestingFile = "resources/training_data/mnist_test.csv";
 
     CsvReader trainReader(csvTrainingFile);
-    std::vector<std::vector<double>> trainingInputs;
-    std::vector<std::vector<double>> trainingTargets;
+    std::vector<std::vector<double>> allInputs;
+    std::vector<std::vector<double>> allTargets;
 
+    // Load all training data
     for (int i = 0; i < TRAINING_SAMPLES && !trainReader.eof(); ++i)
     {
         auto [label, pixels] = trainReader.getLabelAndPixels();
-        trainingInputs.push_back(normalizePixels(pixels));
-        trainingTargets.push_back(oneHotEncode(label));
+        allInputs.push_back(normalizePixels(pixels));
+        allTargets.push_back(oneHotEncode(label));
     }
+
+    // Split into training (80%) and validation (20%) sets
+    size_t totalSamples = allInputs.size();
+    size_t validationSize = totalSamples / 5; // 20% for validation
+    size_t trainingSize = totalSamples - validationSize;
+
+    std::vector<std::vector<double>> trainingInputs(allInputs.begin(), allInputs.begin() + trainingSize);
+    std::vector<std::vector<double>> trainingTargets(allTargets.begin(), allTargets.begin() + trainingSize);
+    std::vector<std::vector<double>> validationInputs(allInputs.begin() + trainingSize, allInputs.end());
+    std::vector<std::vector<double>> validationTargets(allTargets.begin() + trainingSize, allTargets.end());
 
     // two hidden layers
     std::vector<int> hiddenLayers = {HIDDEN_NEURONS_LAYER1, HIDDEN_NEURONS_LAYER2};
@@ -101,9 +112,10 @@ void train()
     // create mlp
     MLP mlp(INPUT_SIZE, hiddenLayers, OUTPUT_SIZE, LEARNING_RATE);
 
-    std::cout << "Starting training for " << EPOCHS << " epochs on "
-              << TRAINING_SAMPLES << " samples." << std::endl;
-    mlp.startTraining(trainingInputs, trainingTargets, EPOCHS);
+    std::cout << "Starting training with " << trainingSize << " training samples and "
+              << validationSize << " validation samples." << std::endl;
+
+    mlp.startTraining(trainingInputs, trainingTargets, validationInputs, validationTargets, EPOCHS);
     std::cout << "Training completed." << std::endl;
 
     std::string modelPath = buildModelPath();
@@ -235,7 +247,7 @@ int main()
     try
     {
         // Uncomment the following line to train a new model.
-        // train();
+        train();
 
         // Quick test on 20 samples with detailed output
         loadModel("models/model_0.01_100_60000_128_64");

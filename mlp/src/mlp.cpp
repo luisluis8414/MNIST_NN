@@ -208,34 +208,98 @@ double meanSquaredError(const std::vector<double> &outputs,
     return error / outputs.size();
 }
 
-// Training loop with early stopping based on minimal improvement.
+// Get predicted class from network output (index of maximum value)
+int MLP::getPredictedClass(const std::vector<double> &output)
+{
+    return static_cast<int>(std::max_element(output.begin(), output.end()) - output.begin());
+}
+
+// Compute accuracy on a dataset
+double MLP::computeAccuracy(const std::vector<std::vector<double>> &inputs,
+                            const std::vector<std::vector<double>> &targets)
+{
+    if (inputs.size() != targets.size() || inputs.empty())
+    {
+        throw std::invalid_argument("Invalid dataset for accuracy computation");
+    }
+
+    int correctPredictions = 0;
+    for (size_t i = 0; i < inputs.size(); i++)
+    {
+        std::vector<double> output = forward(inputs[i]);
+        int predictedClass = getPredictedClass(output);
+        int targetClass = getPredictedClass(targets[i]); // Convert one-hot to class index
+        if (predictedClass == targetClass)
+        {
+            correctPredictions++;
+        }
+    }
+
+    return static_cast<double>(correctPredictions) / inputs.size();
+}
+
+// Training loop with early stopping based on validation accuracy
 void MLP::startTraining(const std::vector<std::vector<double>> &trainingInputs,
                         const std::vector<std::vector<double>> &trainingTargets,
+                        const std::vector<std::vector<double>> &validationInputs,
+                        const std::vector<std::vector<double>> &validationTargets,
                         int epochs, int patience,
                         double minimalImprovement)
 {
-    double bestMSE = std::numeric_limits<double>::max();
+    double bestAccuracy = 0.0;
     int epochsWithoutImprovement = 0;
+
+    std::cout << "Starting training with:" << std::endl
+              << "- Training samples: " << trainingInputs.size() << std::endl
+              << "- Validation samples: " << validationInputs.size() << std::endl
+              << "- Max epochs: " << epochs << std::endl
+              << "- Early stopping patience: " << patience << " epochs" << std::endl
+              << "- Minimal improvement threshold: " << minimalImprovement << std::endl;
+
+    // Print header for the training log
+    std::cout << "\nEpoch  Train Loss   Train Acc   Val Loss    Val Acc" << std::endl;
+    std::cout << "------------------------------------------------" << std::endl;
 
     for (int epoch = 0; epoch < epochs; epoch++)
     {
-        double totalMSE = 0.0;
+        double trainTotalMSE = 0.0;
 
+        // Training phase
         for (size_t i = 0; i < trainingInputs.size(); i++)
         {
             train(trainingInputs[i], trainingTargets[i]);
 
-            // Compute output for MSE calculation.
+            // Compute MSE for this sample
             std::vector<double> output = forward(trainingInputs[i]);
-            totalMSE += meanSquaredError(output, trainingTargets[i]);
+            trainTotalMSE += meanSquaredError(output, trainingTargets[i]);
         }
 
-        double avgMSE = totalMSE / trainingInputs.size();
-        std::cout << "Epoch " << epoch + 1 << " - Average MSE: " << avgMSE << '\n';
+        // Compute average MSE and accuracies
+        double trainMSE = trainTotalMSE / trainingInputs.size();
+        double trainAccuracy = computeAccuracy(trainingInputs, trainingTargets);
 
-        if (avgMSE < bestMSE - minimalImprovement)
+        // Compute validation metrics
+        double valTotalMSE = 0.0;
+        for (size_t i = 0; i < validationInputs.size(); i++)
         {
-            bestMSE = avgMSE;
+            std::vector<double> output = forward(validationInputs[i]);
+            valTotalMSE += meanSquaredError(output, validationTargets[i]);
+        }
+        double valMSE = valTotalMSE / validationInputs.size();
+        double valAccuracy = computeAccuracy(validationInputs, validationTargets);
+
+        // Print metrics in a clean tabular format
+        printf("%3d    %.6f   %6.2f%%    %.6f   %6.2f%%\n",
+               epoch + 1,
+               trainMSE,
+               trainAccuracy * 100.0,
+               valMSE,
+               valAccuracy * 100.0);
+
+        // Early stopping check based on validation accuracy
+        if (valAccuracy > bestAccuracy + minimalImprovement)
+        {
+            bestAccuracy = valAccuracy;
             epochsWithoutImprovement = 0;
         }
         else
@@ -245,8 +309,9 @@ void MLP::startTraining(const std::vector<std::vector<double>> &trainingInputs,
 
         if (epochsWithoutImprovement >= patience)
         {
-            std::cout << "Early stopping triggered after " << epoch + 1
-                      << " epochs." << std::endl;
+            std::cout << "\nEarly stopping triggered after " << epoch + 1
+                      << " epochs. Best validation accuracy: "
+                      << (bestAccuracy * 100.0) << "%" << std::endl;
             break;
         }
     }

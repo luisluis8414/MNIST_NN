@@ -46,9 +46,13 @@ A C++ implementation of a Multi-Layer Perceptron (MLP) for recognizing handwritt
 4. **Update Weights**: Adjust weights and biases using gradient descent
 
 ### Early Stopping
-- **Patience**: 5 epochs
-- **Minimal Improvement**: 0.0001
-- **Metric**: Mean Squared Error on training data
+- **Dataset Split**: 80% training, 20% validation
+- **Metric**: Validation accuracy (not training error)
+- **Patience**: 10 epochs
+- **Minimal Improvement**: 0.1% increase in validation accuracy
+- **Maximum Epochs**: 100 (may stop earlier due to early stopping)
+
+The training will automatically stop when the validation accuracy shows no improvement of at least 0.1% for 10 consecutive epochs, or when reaching 100 epochs, whichever comes first. This helps prevent overfitting and ensures the model generalizes well to new data.
 
 ## 📁 Project Components
 
@@ -80,6 +84,11 @@ msbuild MultiLayerPerception.sln /p:Configuration=Debug /p:Platform=x64
 ```bash
 scripts/build.bat
 ```
+
+### ⚠️ Performance Note
+
+This neural network runs entirely on CPU, which means training can be quite slow. For optimal performance:
+- Build and run training in **Release** mode, which is significantly faster than Debug mode
 
 ### Train a New Model
 1. Uncomment `train();` in `MNIST/src/main.cpp`

@@ -30,15 +30,21 @@ public:
     // Forward pass: returns the network output for given inputs.
     std::vector<double> forward(const std::vector<double> &inputs);
 
-    // Training with early stopping.
+    // Training with early stopping based on validation accuracy.
     void startTraining(const std::vector<std::vector<double>> &trainingInputs,
                        const std::vector<std::vector<double>> &trainingTargets,
-                       int epochs, int patience = 5,
-                       double minimalImprovement = 0.0001);
+                       const std::vector<std::vector<double>> &validationInputs,
+                       const std::vector<std::vector<double>> &validationTargets,
+                       int epochs, int patience = 10,
+                       double minimalImprovement = 0.001);
 
     // Save and load the model.
     void saveModel(const std::string &filename);
     void loadModel(const std::string &filename);
+
+    // Compute accuracy on a dataset
+    double computeAccuracy(const std::vector<std::vector<double>> &inputs,
+                           const std::vector<std::vector<double>> &targets);
 
 private:
     // PIMPL–style internal implementation.
@@ -56,4 +62,7 @@ private:
 
     // Apply softmax to a vector of values
     std::vector<double> applySoftmax(const std::vector<double> &inputs);
+
+    // Get predicted class (index of maximum value)
+    int getPredictedClass(const std::vector<double> &output);
 };
